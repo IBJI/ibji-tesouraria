@@ -7,13 +7,14 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body style="background:#f1f5f9">
-<div class="container mt-3" style="max-width:700px">
+<div class="container mt-3" style="max-width:750px">
 <div class="card shadow p-3">
 <h4 class="text-center">Relatório Financeiro</h4>
 
-<div class="d-flex gap-2 mt-3 mb-3">
-  <select id="mesSelect" class="form-select" style="max-width:180px" onchange="carregar(this.value)"></select>
-  <button class="btn btn-outline-primary" onclick="carregar()">🔄 Atualizar</button>
+<div class="d-flex gap-2 mt-3 mb-3 flex-wrap">
+  <select id="mesSelect" class="form-select" style="max-width:150px" onchange="carregar(this.value)"></select>
+  <button class="btn btn-outline-primary" onclick="carregar()">🔄</button>
+  <button class="btn btn-success" onclick="baixarCSV()">📥 Baixar Excel</button>
   <a href="index.html" class="btn btn-secondary ms-auto">Voltar</a>
 </div>
 
@@ -24,6 +25,8 @@
 </div>
 
 <script>
+let dadosGlobais = [];
+
 async function carregar(mesForcado) {
   let select = document.getElementById('mesSelect');
   let mes = mesForcado || select.value;
@@ -34,6 +37,7 @@ async function carregar(mesForcado) {
   try {
     let r = await fetch(url);
     let { dados, meses, mesAtual } = await r.json();
+    dadosGlobais = dados;
     
     // Preenche seletor
     if (select.options.length === 0 || meses.length !== select.options.length) {
@@ -50,14 +54,14 @@ async function carregar(mesForcado) {
         if (!mes) mes = mesAtual;
     }
 
-    // Calcula totais
     let total = dados.reduce((s, x) => s + (Number(x.valor)||0), 0);
     let dizimo = dados.filter(x=>x.tipo==='Dízimo').reduce((s,x)=>s+Number(x.valor),0);
     let oferta = dados.filter(x=>x.tipo==='Oferta').reduce((s,x)=>s+Number(x.valor),0);
 
     document.getElementById('resumo').innerHTML = `
       <b>Mês: ${mes}</b> | Lançamentos: ${dados.length}<br>
-      <b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b> | Dízimos: R$ ${dizimo.toLocaleString('pt-BR')} | Ofertas: R$ ${oferta.toLocaleString('pt-BR')}
+      <b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b><br>
+      Dízimos: R$ ${dizimo.toLocaleString('pt-BR',{minimumFractionDigits:2})} | Ofertas: R$ ${oferta.toLocaleString('pt-BR',{minimumFractionDigits:2})}
     `;
 
     if (dados.length === 0) {
@@ -65,22 +69,39 @@ async function carregar(mesForcado) {
         return;
     }
 
-    let html = '<table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th></tr>';
+    let html = '<div class="table-responsive"><table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th><th>Pagto</th></tr>';
     dados.forEach(d => {
         html += `<tr>
           <td>${(d.data||'').split('-').reverse().join('/')}</td>
           <td>${d.nome||''}</td>
           <td>${d.tipo||''}</td>
           <td>R$ ${d.valorFormatado || Number(d.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+          <td>${d.pagamento||''}</td>
         </tr>`;
     });
-    html += '</table>';
+    html += '</table></div>';
     document.getElementById('lista').innerHTML = html;
 
   } catch(e) {
-    document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar. Verifique se o arquivo listar.js já foi atualizado.</p>';
+    document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar. Confirme que o listar.js foi atualizado.</p>';
   }
 }
+
+function baixarCSV() {
+  if (dadosGlobais.length === 0) { alert('Nada neste mês para baixar'); return; }
+  let mes = document.getElementById('mesSelect').value;
+  let csv = 'Data,Nome,Tipo,Valor,Pagamento,Culto,Observacao\n';
+  dadosGlobais.forEach(d => {
+    csv += `"${d.data}","${d.nome}","${d.tipo}","${d.valorFormatado || d.valor}","${d.pagamento}","${d.culto}","${(d.observacao||'').replace(/"/g,'')}"\n`;
+  });
+  let blob = new Blob(["\ufeff"+csv], {type:'text/csv;charset=utf-8;'});
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement('a');
+  a.href = url;
+  a.download = `relatorio-${mes}.csv`;
+  a.click();
+}
+
 carregar();
 </script>
 </body>
