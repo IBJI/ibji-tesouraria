@@ -1,109 +1,57 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatório</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body style="background:#f1f5f9">
-
-<!-- TELA DE SENHA -->
-<div id="login" class="container mt-5" style="max-width:400px">
-  <div class="card shadow p-4 text-center">
-    <h4>🔒 Tesouraria</h4>
-    <input type="password" id="senha" class="form-control mt-3 text-center" placeholder="Digite a senha">
-    <button class="btn btn-primary w-100 mt-3" onclick="checkSenha()">Entrar</button>
-    <p id="erro" class="text-danger mt-2"></p>
-    <a href="/" class="btn btn-outline-secondary w-100 mt-3">Voltar</a>
-  </div>
-</div>
-
-<!-- TELA DO RELATÓRIO -->
-<div id="painel" class="container mt-3" style="max-width:750px; display:none">
-<div class="card shadow p-3">
-<h4 class="text-center">Relatório Financeiro</h4>
-
-<div class="d-flex gap-2 mt-3 mb-3 flex-wrap align-items-center">
-  <select id="mesSelect" class="form-select" style="max-width:130px" onchange="carregar(this.value)"></select>
-  <button class="btn btn-outline-primary" onclick="carregar()">🔄</button>
-  <button class="btn btn-success" onclick="baixarCSV()">📥 Excel</button>
-  <button class="btn btn-secondary ms-auto" onclick="location.href='/'">Voltar</button>
-</div>
-
-<div id="resumo" class="alert alert-info"></div>
-<div id="lista"></div>
-</div>
-</div>
-
+<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Dízimos e Ofertas</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><style>.logo{width:90px;display:block;margin:0 auto 8px}</style></head>
+<body style="background:#f1f5f9"><div class="container mt-4" style="max-width:520px"><div class="card shadow p-4"><img src="logo.png" class="logo" alt="" onerror="this.style.display='none'"><h3 class="text-center">Igreja Batista no<br>Jardim dos Ipes</h3><h4 class="text-center mt-3">🙏 Dízimos e Ofertas</h4>
+<label>Data</label><input type="date" id="data" class="form-control mb-2">
+<label>Nome (max 20 letras)</label><input type="text" id="nome" maxlength="20" class="form-control mb-2" placeholder="EX: JOAO SILVA">
+<div class="row"><div class="col-6"><label>Tipo</label><select id="tipo" class="form-select mb-2"><option>Dízimo</option><option>Oferta</option><option>Missões</option></select></div><div class="col-6"><label>Valor R$</label><input type="text" inputmode="numeric" id="valor" class="form-control mb-2" placeholder="0,00" oninput="formataValor(this)"></div></div>
+<div class="row"><div class="col-6"><label>Pagamento</label><select id="pagamento" class="form-select mb-2"><option>Pix</option><option>Gazofilácio</option><option>Transferência</option></select></div><div class="col-6"><label>Culto</label><select id="culto" class="form-select mb-2"><option>Domingo</option><option>Sábado</option></select></div></div>
+<label>Observação</label><textarea id="observacao" class="form-control mb-3" rows="2" placeholder="EXEMPLO"></textarea>
+<button class="btn btn-primary w-100 btn-lg" id="btnSalvar" onclick="salvar()">Registrar Entrada</button>
+<p id="msg" class="text-center mt-2 fw-bold"></p><a href="admin.html" class="btn btn-outline-secondary w-100 mt-2">Ver Relatório</a></div></div></div>
 <script>
-const SENHA = "ipes"; // SUA SENHA AQUI
-let dadosGlobais = [];
-
-function checkSenha(){
-  if(document.getElementById('senha').value === SENHA){
-    sessionStorage.setItem('logado','1');
-    abrir();
-  } else {
-    document.getElementById('erro').innerText = "Senha incorreta";
-  }
+document.getElementById('data').valueAsDate=new Date();
+document.getElementById('nome').addEventListener('input',function(){this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase().slice(0,20)});
+document.getElementById('observacao').addEventListener('input',function(){this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase()});
+function formataValor(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (v === '') { input.value = ''; return; }
+  if (v.length > 12) v = v.slice(0, 12);
+  let num = (parseInt(v) / 100).toFixed(2).split('.');
+  let inteiro = num[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  input.value = inteiro + ',' + num[1];
 }
-function abrir(){
-  document.getElementById('login').style.display='none';
-  document.getElementById('painel').style.display='block';
-  carregar();
+function pegaValorNumerico() {
+  let v = document.getElementById('valor').value;
+  if (!v) return 0;
+  return parseFloat(v.replace(/\./g, '').replace(',', '.'));
 }
-if(sessionStorage.getItem('logado')==='1'){ abrir(); }
-
-async function carregar(mesForcado){
-  let sel = document.getElementById('mesSelect');
-  let mes = mesForcado || sel.value;
-  let url = mes ? `/.netlify/functions/listar?mes=${mes}` : `/.netlify/functions/listar`;
-  document.getElementById('lista').innerHTML = "Carregando...";
-  try{
-    let r = await fetch(url);
-    let j = await r.json();
-    let dados = j.dados || [];
-    let meses = j.meses || [];
-    let mesAtual = j.mesAtual;
-    dadosGlobais = dados;
-
-    if(sel.options.length===0){
-      sel.innerHTML='';
-      if(meses.length===0) meses=[mesAtual];
-      meses.sort().reverse().forEach(m=>{
-        let o=document.createElement('option'); o.value=m;
-        let [a,me]=m.split('-'); o.textContent=me+'/'+a;
-        if(m===(mes||mesAtual)) o.selected=true;
-        sel.appendChild(o);
-      });
-    }
-
-    let total = dados.reduce((s,x)=>s+Number(x.valor||0),0);
-    document.getElementById('resumo').innerHTML = `<b>Mês: ${mes || mesAtual}</b> - ${dados.length} lançamentos<br><b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b>`;
-
-    if(dados.length===0){
-      document.getElementById('lista').innerHTML='<p class="text-center text-muted">Nada neste mês</p>'; return;
-    }
-    let h='<div class="table-responsive"><table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th></tr>';
-    dados.forEach(d=>{
-      h+=`<tr><td>${(d.data||'').split('-').reverse().join('/')}</td><td>${d.nome}</td><td>${d.tipo}</td><td>R$ ${d.valorFormatado||d.valor}</td></tr>`;
-    });
-    h+='</table></div>';
-    document.getElementById('lista').innerHTML=h;
-  }catch(e){
-    document.getElementById('lista').innerHTML='<p class="text-danger">Erro ao carregar</p>';
-  }
+async function salvar(){
+ let b=document.getElementById('btnSalvar'); b.disabled=true; b.textContent='Salvando...';
+ let valorNum = pegaValorNumerico();
+ let valorFormat = document.getElementById('valor').value;
+ let d={
+   data:document.getElementById('data').value,
+   nome:document.getElementById('nome').value.trim(),
+   tipo:document.getElementById('tipo').value,
+   valor:valorNum,
+   valorFormatado:valorFormat,
+   pagamento:document.getElementById('pagamento').value,
+   culto:document.getElementById('culto').value,
+   observacao:document.getElementById('observacao').value
+ };
+ if(!d.nome||!d.valor){alert('Preencha nome e valor'); b.disabled=false; b.textContent='Registrar Entrada'; return;}
+ try{
+   let r=await fetch('/.netlify/functions/salvar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}); 
+   if(!r.ok) throw Error(); 
+   document.getElementById('msg').className='text-center mt-2 fw-bold text-success';
+   document.getElementById('msg').textContent='✅ Salvo na nuvem! R$ ' + valorFormat; 
+   document.getElementById('nome').value=''; 
+   document.getElementById('valor').value=''; 
+   document.getElementById('observacao').value='';
+   setTimeout(()=>{document.getElementById('msg').textContent=''},3000);
+ }catch(e){
+   document.getElementById('msg').className='text-center mt-2 fw-bold text-danger';
+   document.getElementById('msg').textContent='❌ Erro ao salvar na nuvem';
+ }
+ b.disabled=false; b.textContent='Registrar Entrada';
 }
-function baixarCSV(){
-  if(dadosGlobais.length===0) return alert('Nada para baixar');
-  let mes=document.getElementById('mesSelect').value;
-  let csv='Data,Nome,Tipo,Valor,Pagamento,Culto\n';
-  dadosGlobais.forEach(d=>{ csv+=`"${d.data}","${d.nome}","${d.tipo}","${d.valorFormatado||d.valor}","${d.pagamento}","${d.culto}"\n`; });
-  let blob=new Blob(["\ufeff"+csv],{type:'text/csv'});
-  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`relatorio-${mes}.csv`; a.click();
-}
-document.getElementById('senha').addEventListener('keydown',e=>{ if(e.key==='Enter') checkSenha(); });
-</script>
-</body>
-</html>
+</script></body></html>
