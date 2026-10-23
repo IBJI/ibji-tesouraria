@@ -3,25 +3,48 @@ import { getStore } from "@netlify/blobs";
 export default async (req) => {
   try {
     const url = new URL(req.url);
-    const mesSolicitado = url.searchParams.get("mes"); // ex: 2026-10
+    const mesFiltro = url.searchParams.get("mes"); // formato YYYY-MM
+
+    const store = getStore("dizimos");
+    const list = await store.list();
     
-    const agora = new Date();
-    const mesAtual = mesSolicitado || `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
-    const chave = `dados-${mesAtual}`;
+    let dados = [];
+    for (const key of list.blobs.map(b => b.key)) {
+      const item = await store.get(key, { type: "json" });
+      if (item) dados.push(item);
+    }
 
-    const store = getStore("ofertas");
-    
-    // lista todos os meses que existem
-    const { blobs } = await store.list();
-    const meses = blobs.map(b => b.key.replace('dados-','')).sort().reverse();
+    // Ordena do mais novo pro mais antigo
+    dados.sort((a,b) => new Date(b.data) - new Date(a.data));
 
-    let dados = await store.get(chave, { type: "json" });
-    if (!dados) dados = [];
+    // Pega todos os meses existentes
+    const mesesSet = new Set(dados.map(d => {
+      if(!d.data) return null;
+      return d.data.substring(0,7); // YYYY-MM
+    }).filter(Boolean));
 
-    return new Response(JSON.stringify({ dados, meses, mesAtual }), {
+    const meses = Array.from(mesesSet).sort().reverse();
+    if(meses.length === 0){
+      const hoje = new Date().toISOString().substring(0,7);
+      meses.push(hoje);
+    }
+
+    // Filtra por mês se pediu
+    if (mesFiltro) {
+      dados = dados.filter(d => d.data && d.data.startsWith(mesFiltro));
+    }
+
+    return new Response(JSON.stringify({
+      dados,
+      meses,
+      mesAtual: meses[0]
+    }), {
+      status: 200,
       headers: { "Content-Type": "application/json" }
     });
+
   } catch (e) {
+    console.error(e);
     return new Response(JSON.stringify({ dados: [], meses: [], error: e.message }), { status: 500 });
   }
-}
+};

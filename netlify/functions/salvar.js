@@ -1,23 +1,32 @@
 import { getStore } from "@netlify/blobs";
 
 export default async (req) => {
-  if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
-  
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
   try {
     const dados = await req.json();
-    const agora = new Date();
-    const mesAno = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`; // 2026-10
-    const chave = `dados-${mesAno}`;
+    
+    if (!dados.nome || !dados.valor) {
+      return new Response(JSON.stringify({ error: "Nome e valor obrigatórios" }), { status: 400 });
+    }
 
-    const store = getStore("ofertas");
-    let existentes = await store.get(chave, { type: "json" });
-    if (!existentes) existentes = [];
+    const store = getStore("dizimos");
+    const id = Date.now() + "-" + Math.random().toString(36).substring(2,6);
+    
+    await store.setJSON(id, {
+      ...dados,
+      id,
+      criadoEm: new Date().toISOString()
+    });
 
-    existentes.push(dados);
-    await store.setJSON(chave, existentes);
+    return new Response(JSON.stringify({ ok: true, id }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
 
-    return new Response(JSON.stringify({ ok: true, mes: mesAno }), { status: 200 });
   } catch (e) {
+    console.error(e);
     return new Response(JSON.stringify({ error: e.message }), { status: 500 });
   }
-}
+};
