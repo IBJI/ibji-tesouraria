@@ -3,31 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatório - Tesouraria</title>
+<title>Relatório</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body style="background:#f1f5f9">
 
-<div class="container mt-5" style="max-width:520px" id="telaLogin">
+<!-- TELA DE SENHA -->
+<div id="login" class="container mt-5" style="max-width:400px">
   <div class="card shadow p-4 text-center">
-    <h4>🔒 Acesso Restrito</h4>
-    <p>Digite a senha da tesouraria</p>
-    <input type="password" id="senhaInput" class="form-control mb-3 text-center" placeholder="Senha">
-    <button class="btn btn-primary w-100" onclick="entrar()">Entrar</button>
-    <p id="erroSenha" class="text-danger mt-2 fw-bold"></p>
-    <button class="btn btn-outline-secondary w-100 mt-3" onclick="location.href='/'">Voltar ao Início</button>
+    <h4>🔒 Tesouraria</h4>
+    <input type="password" id="senha" class="form-control mt-3 text-center" placeholder="Digite a senha">
+    <button class="btn btn-primary w-100 mt-3" onclick="checkSenha()">Entrar</button>
+    <p id="erro" class="text-danger mt-2"></p>
+    <a href="/" class="btn btn-outline-secondary w-100 mt-3">Voltar</a>
   </div>
 </div>
 
-<div class="container mt-3" style="max-width:750px; display:none" id="telaRelatorio">
+<!-- TELA DO RELATÓRIO -->
+<div id="painel" class="container mt-3" style="max-width:750px; display:none">
 <div class="card shadow p-3">
 <h4 class="text-center">Relatório Financeiro</h4>
 
-<div class="d-flex gap-2 mt-3 mb-3 flex-wrap">
-  <select id="mesSelect" class="form-select" style="max-width:150px" onchange="carregar(this.value)"></select>
+<div class="d-flex gap-2 mt-3 mb-3 flex-wrap align-items-center">
+  <select id="mesSelect" class="form-select" style="max-width:130px" onchange="carregar(this.value)"></select>
   <button class="btn btn-outline-primary" onclick="carregar()">🔄</button>
-  <button class="btn btn-success" onclick="baixarCSV()">📥 Baixar Excel</button>
-  <button class="btn btn-secondary ms-auto" onclick="sair()">Sair / Início</button>
+  <button class="btn btn-success" onclick="baixarCSV()">📥 Excel</button>
+  <button class="btn btn-secondary ms-auto" onclick="location.href='/'">Voltar</button>
 </div>
 
 <div id="resumo" class="alert alert-info"></div>
@@ -36,91 +37,73 @@
 </div>
 
 <script>
-const SENHA_CORRETA = "ipes123"; // <-- TROCA AQUI SUA SENHA SE QUISER
+const SENHA = "ipes"; // SUA SENHA AQUI
 let dadosGlobais = [];
 
-function entrar(){
-  let s = document.getElementById('senhaInput').value;
-  if(s === SENHA_CORRETA){
-    sessionStorage.setItem('logado','sim');
-    mostrarRelatorio();
+function checkSenha(){
+  if(document.getElementById('senha').value === SENHA){
+    sessionStorage.setItem('logado','1');
+    abrir();
   } else {
-    document.getElementById('erroSenha').textContent = '❌ Senha incorreta';
+    document.getElementById('erro').innerText = "Senha incorreta";
   }
 }
-function mostrarRelatorio(){
-  document.getElementById('telaLogin').style.display='none';
-  document.getElementById('telaRelatorio').style.display='block';
+function abrir(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('painel').style.display='block';
   carregar();
 }
-function sair(){
-  sessionStorage.removeItem('logado');
-  location.href = '/';
-}
+if(sessionStorage.getItem('logado')==='1'){ abrir(); }
 
-// Se já logou nessa sessão, entra direto
-if(sessionStorage.getItem('logado') === 'sim'){
-  mostrarRelatorio();
-}
-
-async function carregar(mesForcado) {
-  let select = document.getElementById('mesSelect');
-  let mes = mesForcado || select.value;
+async function carregar(mesForcado){
+  let sel = document.getElementById('mesSelect');
+  let mes = mesForcado || sel.value;
   let url = mes ? `/.netlify/functions/listar?mes=${mes}` : `/.netlify/functions/listar`;
-  document.getElementById('lista').innerHTML = '<p class="text-center">Carregando...</p>';
-  try {
+  document.getElementById('lista').innerHTML = "Carregando...";
+  try{
     let r = await fetch(url);
     let j = await r.json();
-    let dados = j.dados || j || [];
+    let dados = j.dados || [];
     let meses = j.meses || [];
-    let mesAtual = j.mesAtual || mes || '2026-10';
+    let mesAtual = j.mesAtual;
     dadosGlobais = dados;
-    if (select.options.length === 0) {
-        select.innerHTML = '';
-        if (meses.length === 0) meses = [mesAtual];
-        meses.sort().reverse().forEach(m => {
-            let opt = document.createElement('option');
-            opt.value = m;
-            let [a, me] = m.split('-');
-            opt.textContent = me + '/' + a;
-            if (m === (mes || mesAtual)) opt.selected = true;
-            select.appendChild(opt);
-        });
-        if (!mes) mes = mesAtual;
+
+    if(sel.options.length===0){
+      sel.innerHTML='';
+      if(meses.length===0) meses=[mesAtual];
+      meses.sort().reverse().forEach(m=>{
+        let o=document.createElement('option'); o.value=m;
+        let [a,me]=m.split('-'); o.textContent=me+'/'+a;
+        if(m===(mes||mesAtual)) o.selected=true;
+        sel.appendChild(o);
+      });
     }
-    let total = dados.reduce((s, x) => s + (Number(x.valor)||0), 0);
-    let dizimo = dados.filter(x=>x.tipo==='Dízimo').reduce((s,x)=>s+Number(x.valor),0);
-    let oferta = dados.filter(x=>x.tipo==='Oferta').reduce((s,x)=>s+Number(x.valor),0);
-    document.getElementById('resumo').innerHTML = `<b>Mês: ${mes}</b> | Lançamentos: ${dados.length}<br><b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b><br>Dízimos: R$ ${dizimo.toLocaleString('pt-BR',{minimumFractionDigits:2})} | Ofertas: R$ ${oferta.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
-    if (dados.length === 0) {
-        document.getElementById('lista').innerHTML = '<p class="text-center text-muted mt-3">Nenhum lançamento neste mês</p>';
-        return;
+
+    let total = dados.reduce((s,x)=>s+Number(x.valor||0),0);
+    document.getElementById('resumo').innerHTML = `<b>Mês: ${mes || mesAtual}</b> - ${dados.length} lançamentos<br><b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b>`;
+
+    if(dados.length===0){
+      document.getElementById('lista').innerHTML='<p class="text-center text-muted">Nada neste mês</p>'; return;
     }
-    let html = '<div class="table-responsive"><table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th><th>Pagto</th></tr>';
-    dados.forEach(d => {
-        html += `<tr><td>${(d.data||'').split('-').reverse().join('/')}</td><td>${d.nome||''}</td><td>${d.tipo||''}</td><td>R$ ${d.valorFormatado || Number(d.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td><td>${d.pagamento||''}</td></tr>`;
+    let h='<div class="table-responsive"><table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th></tr>';
+    dados.forEach(d=>{
+      h+=`<tr><td>${(d.data||'').split('-').reverse().join('/')}</td><td>${d.nome}</td><td>${d.tipo}</td><td>R$ ${d.valorFormatado||d.valor}</td></tr>`;
     });
-    html += '</table></div>';
-    document.getElementById('lista').innerHTML = html;
-  } catch(e) {
-    document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar</p>';
+    h+='</table></div>';
+    document.getElementById('lista').innerHTML=h;
+  }catch(e){
+    document.getElementById('lista').innerHTML='<p class="text-danger">Erro ao carregar</p>';
   }
 }
-function baixarCSV() {
-  if (dadosGlobais.length === 0) { alert('Nada neste mês para baixar'); return; }
-  let mes = document.getElementById('mesSelect').value;
-  let csv = 'Data,Nome,Tipo,Valor,Pagamento,Culto,Observacao\n';
-  dadosGlobais.forEach(d => {
-    csv += `"${d.data}","${d.nome}","${d.tipo}","${d.valorFormatado || d.valor}","${d.pagamento}","${d.culto}","${(d.observacao||'').replace(/"/g,'')}"\n`;
-  });
-  let blob = new Blob(["\ufeff"+csv], {type:'text/csv;charset=utf-8;'});
-  let url = URL.createObjectURL(blob);
-  let a = document.createElement('a');
-  a.href = url;
-  a.download = `relatorio-${mes}.csv`;
-  a.click();
+function baixarCSV(){
+  if(dadosGlobais.length===0) return alert('Nada para baixar');
+  let mes=document.getElementById('mesSelect').value;
+  let csv='Data,Nome,Tipo,Valor,Pagamento,Culto\n';
+  dadosGlobais.forEach(d=>{ csv+=`"${d.data}","${d.nome}","${d.tipo}","${d.valorFormatado||d.valor}","${d.pagamento}","${d.culto}"\n`; });
+  let blob=new Blob(["\ufeff"+csv],{type:'text/csv'});
+  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`relatorio-${mes}.csv`; a.click();
 }
-document.getElementById('senhaInput').addEventListener('keydown', function(e){ if(e.key==='Enter') entrar(); });
+document.getElementById('senha').addEventListener('keydown',e=>{ if(e.key==='Enter') checkSenha(); });
 </script>
 </body>
 </html>
