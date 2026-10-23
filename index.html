@@ -15,7 +15,7 @@
   <select id="mesSelect" class="form-select" style="max-width:150px" onchange="carregar(this.value)"></select>
   <button class="btn btn-outline-primary" onclick="carregar()">🔄</button>
   <button class="btn btn-success" onclick="baixarCSV()">📥 Baixar Excel</button>
-  <a href="index.html" class="btn btn-secondary ms-auto">Voltar</a>
+  <button class="btn btn-secondary ms-auto" onclick="location.href='/'">Voltar</button>
 </div>
 
 <div id="resumo" class="alert alert-info"></div>
@@ -36,11 +36,14 @@ async function carregar(mesForcado) {
   
   try {
     let r = await fetch(url);
-    let { dados, meses, mesAtual } = await r.json();
+    let j = await r.json();
+    let dados = j.dados || j || [];
+    let meses = j.meses || [];
+    let mesAtual = j.mesAtual || mes || '2026-10';
+    
     dadosGlobais = dados;
     
-    // Preenche seletor
-    if (select.options.length === 0 || meses.length !== select.options.length) {
+    if (select.options.length === 0) {
         select.innerHTML = '';
         if (meses.length === 0) meses = [mesAtual];
         meses.sort().reverse().forEach(m => {
@@ -83,7 +86,8 @@ async function carregar(mesForcado) {
     document.getElementById('lista').innerHTML = html;
 
   } catch(e) {
-    document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar. Confirme que o listar.js foi atualizado.</p>';
+    console.error(e);
+    document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar</p>';
   }
 }
 
