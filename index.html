@@ -11,6 +11,8 @@
 document.getElementById('data').valueAsDate=new Date();
 document.getElementById('nome').addEventListener('input',function(){this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase().slice(0,20)});
 document.getElementById('observacao').addEventListener('input',function(){this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase()});
+
+// FORMATA VALOR x,xx AUTO
 function formataValor(input) {
   let v = input.value.replace(/\D/g, '');
   if (v === '') { input.value = ''; return; }
@@ -24,6 +26,7 @@ function pegaValorNumerico() {
   if (!v) return 0;
   return parseFloat(v.replace(/\./g, '').replace(',', '.'));
 }
+
 async function salvar(){
  let b=document.getElementById('btnSalvar'); b.disabled=true; b.textContent='Salvando...';
  let valorNum = pegaValorNumerico();
