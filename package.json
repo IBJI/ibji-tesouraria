@@ -1,0 +1,6 @@
+{
+  "name": "ibji-tesouraria",
+  "dependencies": {
+    "@netlify/blobs": "^7.0.0"
+  }
+}
