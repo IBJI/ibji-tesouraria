@@ -1,125 +1,139 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatório - Tesouraria</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
- body{background:#f1f5f9}
- #telaBloqueio{position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;z-index:9999;display:flex;justify-content:center;align-items:center;padding:20px}
-</style>
-</head>
-<body style="background:#f1f5f9">
+<!DOCTYPE html> <!-- Define que o documento é HTML5 -->
+<html lang="pt-br"> <!-- Início do HTML em português do Brasil -->
+<head> <!-- Início do cabeçalho -->
+<meta charset="UTF-8"> <!-- Permite acentos e ç -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Deixa responsivo no celular -->
+<title>Relatório - Tesouraria</title> <!-- Título da aba -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> <!-- Importa Bootstrap -->
+<style> /* Início do CSS */
+ body{background:#f1f5f9} /* Cor de fundo cinza claro */
+ #telaBloqueio{ /* Estilo da tela de senha */
+    position:fixed; /* Fixa na tela toda */
+    top:0; /* No topo */
+    left:0; /* Na esquerda */
+    width:100%; /* Largura total */
+    height:100%; /* Altura total */
+    background:#f1f5f9; /* Fundo cinza */
+    z-index:9999; /* Fica por cima de tudo */
+    display:flex; /* Usa flex para centralizar */
+    justify-content:center; /* Centraliza na horizontal */
+    align-items:center; /* Centraliza na vertical */
+    padding:20px /* Espaço interno */
+ }
+</style> <!-- Fim do CSS -->
+</head> <!-- Fim do cabeçalho -->
+<body style="background:#f1f5f9"> <!-- Corpo da página com fundo cinza -->
 
-<div id="telaBloqueio">
-<div class="card shadow p-4" style="max-width:400px;width:100%">
-<h4 class="text-center">🔒 Acesso Restrito</h4>
-<p class="text-center text-muted">Tesouraria IBJI</p>
-<label>Digite a senha</label>
-<input type="password" id="inputSenha" class="form-control mb-3" placeholder="Senha" onkeydown="if(event.key==='Enter') checarSenha()">
-<button class="btn btn-primary w-100" onclick="checarSenha()">Entrar</button>
-<p id="erroSenha" class="text-danger text-center mt-2"></p>
-<button class="btn btn-outline-secondary w-100 mt-2" onclick="voltar()">Voltar para Lançamento</button>
-</div>
-</div>
+<!-- TELA DE BLOQUEIO COM SENHA -->
+<div id="telaBloqueio"> <!-- Div da tela de bloqueio -->
+<div class="card shadow p-4" style="max-width:400px;width:100%"> <!-- Cartão branco do login -->
+<h4 class="text-center">🔒 Acesso Restrito</h4> <!-- Título -->
+<p class="text-center text-muted">Tesouraria IBJI</p> <!-- Subtítulo -->
+<label>Digite a senha</label> <!-- Rótulo senha -->
+<input type="password" id="inputSenha" class="form-control mb-3" placeholder="Senha" onkeydown="if(event.key==='Enter') checarSenha()"> <!-- Campo senha, Enter chama checarSenha -->
+<button class="btn btn-primary w-100" onclick="checarSenha()">Entrar</button> <!-- Botão entrar -->
+<p id="erroSenha" class="text-danger text-center mt-2"></p> <!-- Local da mensagem de erro -->
+<button class="btn btn-outline-secondary w-100 mt-2" onclick="voltar()">Voltar para Lançamento</button> <!-- Botão voltar -->
+</div> <!-- Fim do cartão -->
+</div> <!-- Fim da tela bloqueio -->
 
-<div class="container mt-3" id="conteudoRelatorio" style="display:none; max-width:700px">
-<div class="card shadow p-3">
-<h4 class="text-center">Relatório Financeiro</h4>
+<!-- CONTEÚDO DO RELATÓRIO -->
+<div class="container mt-3" id="conteudoRelatorio" style="display:none; max-width:700px"> <!-- Container do relatório, começa escondido -->
+<div class="card shadow p-3"> <!-- Cartão do relatório -->
+<h4 class="text-center">Relatório Financeiro</h4> <!-- Título do relatório -->
 
-<div class="d-flex gap-2 mt-3 mb-3">
-  <select id="mesSelect" class="form-select" style="max-width:180px" onchange="carregar(this.value)"></select>
-  <button class="btn btn-outline-primary" onclick="carregar()">🔄</button>
-  <button class="btn btn-success" onclick="baixarExcel()">📥 Excel</button>
-  <button class="btn btn-warning" onclick="sair()">Sair</button>
-  <a href="../index.html" class="btn btn-secondary ms-auto" onclick="sessionStorage.clear()">Voltar</a>
-</div>
+<div class="d-flex gap-2 mt-3 mb-3"> <!-- Linha de controles com espaço entre eles -->
+  <select id="mesSelect" class="form-select" style="max-width:180px" onchange="carregar(this.value)"></select> <!-- Select de mês, ao mudar chama carregar -->
+  <button class="btn btn-outline-primary" onclick="carregar()">🔄</button> <!-- Botão recarregar -->
+  <button class="btn btn-success" onclick="baixarExcel()">📥 Excel</button> <!-- Botão baixar Excel -->
+  <button class="btn btn-warning" onclick="sair()">Sair</button> <!-- Botão sair/bloquear -->
+  <a href="../index.html" class="btn btn-secondary ms-auto" onclick="sessionStorage.clear()">Voltar</a> <!-- Link voltar para index -->
+</div> <!-- Fim linha de controles -->
 
-<div id="resumo" class="alert alert-info"></div>
-<div id="lista"></div>
+<div id="resumo" class="alert alert-info"></div> <!-- Div do resumo total/dízimos/ofertas -->
+<div id="lista"></div> <!-- Div onde entra a tabela -->
 
-</div>
-</div>
+</div> <!-- Fim cartão relatório -->
+</div> <!-- Fim container relatório -->
 
-<script>
-const SENHA_CORRETA = "24M@ri28Juli";
-let dadosAtuais = [];
-let mesAtualGlobal = "";
+<script> // Início do JavaScript
+const SENHA_CORRETA = "24M@ri28Juli"; // Senha fixa de acesso
+let dadosAtuais = []; // Guarda os dados do mês carregado
+let mesAtualGlobal = ""; // Guarda o mês atual global
 
-function checarSenha(){
-  if(document.getElementById('inputSenha').value === SENHA_CORRETA){
-    sessionStorage.setItem('logado','true');
-    document.getElementById('telaBloqueio').style.display='none';
-    document.getElementById('conteudoRelatorio').style.display='block';
-    carregar();
-  } else {
-    document.getElementById('erroSenha').textContent='❌ Senha incorreta!';
+function checarSenha(){ // Função para checar senha
+  if(document.getElementById('inputSenha').value === SENHA_CORRETA){ // Se senha digitada igual a correta
+    sessionStorage.setItem('logado','true'); // Marca como logado na sessão
+    document.getElementById('telaBloqueio').style.display='none'; // Esconde tela de bloqueio
+    document.getElementById('conteudoRelatorio').style.display='block'; // Mostra relatório
+    carregar(); // Carrega dados
+  } else { // Se senha errada
+    document.getElementById('erroSenha').textContent='❌ Senha incorreta!'; // Mostra erro
   }
 }
-function voltar(){ sessionStorage.clear(); window.location.href='../index.html'; }
-function sair(){ sessionStorage.clear(); document.getElementById('inputSenha').value=''; document.getElementById('conteudoRelatorio').style.display='none'; document.getElementById('telaBloqueio').style.display='flex'; document.getElementById('erroSenha').textContent=''; }
+function voltar(){ sessionStorage.clear(); window.location.href='../index.html'; } // Limpa sessão e volta para index
+function sair(){ sessionStorage.clear(); document.getElementById('inputSenha').value=''; document.getElementById('conteudoRelatorio').style.display='none'; document.getElementById('telaBloqueio').style.display='flex'; document.getElementById('erroSenha').textContent=''; } // Limpa, esconde relatório e mostra bloqueio de novo
 
-async function carregar(mesForcado) {
-  let select = document.getElementById('mesSelect');
-  let mes = mesForcado || select.value;
-  let url = mes ? `/.netlify/functions/listar?mes=${mes}` : `/.netlify/functions/listar`;
-  document.getElementById('lista').innerHTML = '<p class="text-center">Carregando...</p>';
-  try {
-    let r = await fetch(url);
-    let { dados, meses, mesAtual } = await r.json();
-    dadosAtuais = dados;
-    mesAtualGlobal = mes || mesAtual;
+async function carregar(mesForcado) { // Função assíncrona para carregar dados da nuvem
+  let select = document.getElementById('mesSelect'); // Pega select de mês
+  let mes = mesForcado || select.value; // Define mês a carregar
+  let url = mes ? `/.netlify/functions/listar?mes=${mes}` : `/.netlify/functions/listar`; // Monta URL da API
+  document.getElementById('lista').innerHTML = '<p class="text-center">Carregando...</p>'; // Mostra carregando
+  try { // Tenta buscar
+    let r = await fetch(url); // Busca na function listar
+    let { dados, meses, mesAtual } = await r.json(); // Pega dados, meses e mesAtual do JSON
+    dadosAtuais = dados; // Guarda dados na global
+    mesAtualGlobal = mes || mesAtual; // Guarda mês atual
 
-    if (select.options.length === 0 || meses.length !== select.options.length) {
-        select.innerHTML = '';
-        if (meses.length === 0) meses = [mesAtual];
-        meses.sort().reverse().forEach(m => {
-            let opt = document.createElement('option');
-            opt.value = m;
-            let [a, me] = m.split('-');
-            opt.textContent = me + '/' + a;
-            if (m === (mes || mesAtual)) opt.selected = true;
-            select.appendChild(opt);
+    if (select.options.length === 0 || meses.length !== select.options.length) { // Se select vazio ou lista mudou
+        select.innerHTML = ''; // Limpa select
+        if (meses.length === 0) meses = [mesAtual]; // Se não veio mês, usa mesAtual
+        meses.sort().reverse().forEach(m => { // Ordena meses decrescente
+            let opt = document.createElement('option'); // Cria option
+            opt.value = m; // Valor yyyy-mm
+            let [a, me] = m.split('-'); // Separa ano e mês
+            opt.textContent = me + '/' + a; // Mostra mm/yyyy
+            if (m === (mes || mesAtual)) opt.selected = true; // Seleciona se for o mês atual
+            select.appendChild(opt); // Adiciona no select
         });
-        if (!mes) mes = mesAtual;
-        mesAtualGlobal = mes;
+        if (!mes) mes = mesAtual; // Define mês se estava vazio
+        mesAtualGlobal = mes; // Atualiza global
     }
 
-    let total = dados.reduce((s, x) => s + (Number(x.valor)||0), 0);
-    let dizimo = dados.filter(x=>x.tipo==='Dízimo').reduce((s,x)=>s+Number(x.valor),0);
-    let oferta = dados.filter(x=>x.tipo==='Oferta').reduce((s,x)=>s+Number(x.valor),0);
+    let total = dados.reduce((s, x) => s + (Number(x.valor)||0), 0); // Soma total geral
+    let dizimo = dados.filter(x=>x.tipo==='Dízimo').reduce((s,x)=>s+Number(x.valor),0); // Soma só dízimos
+    let oferta = dados.filter(x=>x.tipo==='Oferta').reduce((s,x)=>s+Number(x.valor),0); // Soma só ofertas
 
-    document.getElementById('resumo').innerHTML = `<b>Mês: ${mes}</b> | Lançamentos: ${dados.length}<br><b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b> | Dízimos: R$ ${dizimo.toLocaleString('pt-BR')} | Ofertas: R$ ${oferta.toLocaleString('pt-BR')}`;
+    document.getElementById('resumo').innerHTML = `<b>Mês: ${mes}</b> | Lançamentos: ${dados.length}<br><b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b> | Dízimos: R$ ${dizimo.toLocaleString('pt-BR')} | Ofertas: R$ ${oferta.toLocaleString('pt-BR')}`; // Exibe resumo
 
-    if (dados.length === 0) { document.getElementById('lista').innerHTML = '<p class="text-center text-muted mt-3">Nenhum lançamento neste mês</p>'; return; }
+    if (dados.length === 0) { document.getElementById('lista').innerHTML = '<p class="text-center text-muted mt-3">Nenhum lançamento neste mês</p>'; return; } // Se vazio, mostra mensagem e para
 
-    let html = '<table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th></tr>';
-    dados.forEach(d => {
-        html += `<tr><td>${(d.data||'').split('-').reverse().join('/')}</td><td>${d.nome||''}</td><td>${d.tipo||''}</td><td>R$ ${d.valorFormatado || Number(d.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`;
+    let html = '<table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th></tr>'; // Início da tabela
+    dados.forEach(d => { // Para cada registro
+        html += `<tr><td>${(d.data||'').split('-').reverse().join('/')}</td><td>${d.nome||''}</td><td>${d.tipo||''}</td><td>R$ ${d.valorFormatado || Number(d.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; // Cria linha com data dd/mm/yyyy
     });
-    html += '</table>';
-    document.getElementById('lista').innerHTML = html;
+    html += '</table>'; // Fecha tabela
+    document.getElementById('lista').innerHTML = html; // Joga tabela na página
 
-  } catch(e) { document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar.</p>'; }
+  } catch(e) { document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar.</p>'; } // Se deu erro, mostra erro
 }
 
-function baixarExcel(){
-  if(dadosAtuais.length===0){ alert('Nenhum dado para exportar'); return; }
-  let csv = "Data;Nome;Tipo;Valor;Pagamento;Culto;Observacao\n";
-  dadosAtuais.forEach(d=>{
-    csv += `${d.data||''};${d.nome||''};${d.tipo||''};${d.valorFormatado||d.valor||''};${d.pagamento||''};${d.culto||''};${(d.observacao||'').replace(/;/g,',')}\n`;
+function baixarExcel(){ // Função para baixar CSV
+  if(dadosAtuais.length===0){ alert('Nenhum dado para exportar'); return; } // Se não tem dado, alerta
+  let csv = "Data;Nome;Tipo;Valor;Pagamento;Culto;Observacao\n"; // Cabeçalho CSV
+  dadosAtuais.forEach(d=>{ // Para cada dado
+    csv += `${d.data||''};${d.nome||''};${d.tipo||''};${d.valorFormatado||d.valor||''};${d.pagamento||''};${d.culto||''};${(d.observacao||'').replace(/;/g,',')}\n`; // Linha do CSV trocando ; por ,
   });
-  let blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  let a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `IBJI-${mesAtualGlobal}.csv`;
-  a.click();
+  let blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); // Cria arquivo blob
+  let a = document.createElement('a'); // Cria link
+  a.href = URL.createObjectURL(blob); // Cria URL do blob
+  a.download = `IBJI-${mesAtualGlobal}.csv`; // Nome do arquivo
+  a.click(); // Baixa
 }
 
-sessionStorage.clear();
-document.getElementById('conteudoRelatorio').style.display='none';
-document.getElementById('telaBloqueio').style.display='flex';
-</script>
-</body>
-</html>
+sessionStorage.clear(); // Limpa sessão ao abrir página
+document.getElementById('conteudoRelatorio').style.display='none'; // Garante que relatório começa escondido
+document.getElementById('telaBloqueio').style.display='flex'; // Garante que bloqueio começa visível
+</script> <!-- Fim do JavaScript -->
+</body> <!-- Fim do corpo -->
+</html> <!-- Fim do HTML -->
