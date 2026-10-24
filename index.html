@@ -8,14 +8,22 @@
 <button class="btn btn-primary w-100 btn-lg" id="btnSalvar" onclick="salvar()">Registrar Entrada</button>
 <p id="msg" class="text-center mt-2 fw-bold"></p><a href="admin.html" class="btn btn-outline-secondary w-100 mt-2">Ver Relatório</a></div></div></div>
 <script>
-// === BLOQUEIO DE DATA FUTURA ===
-const hojeISO = new Date().toISOString().split('T')[0];
+// === DATA LOCAL CORRETA (BRASIL) ===
+function getHojeLocal(){
+  let agora = new Date();
+  let ano = agora.getFullYear();
+  let mes = String(agora.getMonth()+1).padStart(2,'0');
+  let dia = String(agora.getDate()).padStart(2,'0');
+  return `${ano}-${mes}-${dia}`;
+}
+const hojeISO = getHojeLocal();
 const inputData = document.getElementById('data');
 inputData.max = hojeISO;
 inputData.value = hojeISO;
+
 inputData.addEventListener('change', function(){
   if(this.value > hojeISO){
-    alert('❌ Não pode lançar com data futura!');
+    alert('Proibido lançar datas futuras!⚠️');
     this.value = hojeISO;
   }
 });
@@ -40,7 +48,7 @@ function pegaValorNumerico() {
 async function salvar(){
  let dataVal = document.getElementById('data').value;
  if(dataVal > hojeISO){
-   alert('❌ Data futura não permitida! Selecione hoje ou data anterior.');
+   alert('Proibido lançar datas futuras!⚠️');
    document.getElementById('data').value = hojeISO;
    return;
  }
