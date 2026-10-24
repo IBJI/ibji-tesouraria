@@ -30,7 +30,8 @@
 
 <div class="d-flex gap-2 mt-3 mb-3">
   <select id="mesSelect" class="form-select" style="max-width:180px" onchange="carregar(this.value)"></select>
-  <button class="btn btn-outline-primary" onclick="carregar()">🔄 Atualizar</button>
+  <button class="btn btn-outline-primary" onclick="carregar()">🔄</button>
+  <button class="btn btn-success" onclick="baixarExcel()">📥 Excel</button>
   <button class="btn btn-warning" onclick="sair()">Sair</button>
   <a href="../index.html" class="btn btn-secondary ms-auto" onclick="sessionStorage.clear()">Voltar</a>
 </div>
@@ -43,6 +44,8 @@
 
 <script>
 const SENHA_CORRETA = "24M@ri28Juli";
+let dadosAtuais = [];
+let mesAtualGlobal = "";
 
 function checarSenha(){
   if(document.getElementById('inputSenha').value === SENHA_CORRETA){
@@ -54,29 +57,20 @@ function checarSenha(){
     document.getElementById('erroSenha').textContent='❌ Senha incorreta!';
   }
 }
-function voltar(){
-  sessionStorage.clear();
-  window.location.href='../index.html';
-}
-function sair(){
-  sessionStorage.clear();
-  document.getElementById('inputSenha').value='';
-  document.getElementById('conteudoRelatorio').style.display='none';
-  document.getElementById('telaBloqueio').style.display='flex';
-  document.getElementById('erroSenha').textContent='';
-}
+function voltar(){ sessionStorage.clear(); window.location.href='../index.html'; }
+function sair(){ sessionStorage.clear(); document.getElementById('inputSenha').value=''; document.getElementById('conteudoRelatorio').style.display='none'; document.getElementById('telaBloqueio').style.display='flex'; document.getElementById('erroSenha').textContent=''; }
 
 async function carregar(mesForcado) {
   let select = document.getElementById('mesSelect');
   let mes = mesForcado || select.value;
   let url = mes ? `/.netlify/functions/listar?mes=${mes}` : `/.netlify/functions/listar`;
-  
   document.getElementById('lista').innerHTML = '<p class="text-center">Carregando...</p>';
-  
   try {
     let r = await fetch(url);
     let { dados, meses, mesAtual } = await r.json();
-    
+    dadosAtuais = dados;
+    mesAtualGlobal = mes || mesAtual;
+
     if (select.options.length === 0 || meses.length !== select.options.length) {
         select.innerHTML = '';
         if (meses.length === 0) meses = [mesAtual];
@@ -89,40 +83,40 @@ async function carregar(mesForcado) {
             select.appendChild(opt);
         });
         if (!mes) mes = mesAtual;
+        mesAtualGlobal = mes;
     }
 
     let total = dados.reduce((s, x) => s + (Number(x.valor)||0), 0);
     let dizimo = dados.filter(x=>x.tipo==='Dízimo').reduce((s,x)=>s+Number(x.valor),0);
     let oferta = dados.filter(x=>x.tipo==='Oferta').reduce((s,x)=>s+Number(x.valor),0);
 
-    document.getElementById('resumo').innerHTML = `
-      <b>Mês: ${mes}</b> | Lançamentos: ${dados.length}<br>
-      <b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b> | Dízimos: R$ ${dizimo.toLocaleString('pt-BR')} | Ofertas: R$ ${oferta.toLocaleString('pt-BR')}
-    `;
+    document.getElementById('resumo').innerHTML = `<b>Mês: ${mes}</b> | Lançamentos: ${dados.length}<br><b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b> | Dízimos: R$ ${dizimo.toLocaleString('pt-BR')} | Ofertas: R$ ${oferta.toLocaleString('pt-BR')}`;
 
-    if (dados.length === 0) {
-        document.getElementById('lista').innerHTML = '<p class="text-center text-muted mt-3">Nenhum lançamento neste mês</p>';
-        return;
-    }
+    if (dados.length === 0) { document.getElementById('lista').innerHTML = '<p class="text-center text-muted mt-3">Nenhum lançamento neste mês</p>'; return; }
 
     let html = '<table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th></tr>';
     dados.forEach(d => {
-        html += `<tr>
-          <td>${(d.data||'').split('-').reverse().join('/')}</td>
-          <td>${d.nome||''}</td>
-          <td>${d.tipo||''}</td>
-          <td>R$ ${d.valorFormatado || Number(d.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
-        </tr>`;
+        html += `<tr><td>${(d.data||'').split('-').reverse().join('/')}</td><td>${d.nome||''}</td><td>${d.tipo||''}</td><td>R$ ${d.valorFormatado || Number(d.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`;
     });
     html += '</table>';
     document.getElementById('lista').innerHTML = html;
 
-  } catch(e) {
-    document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar. Verifique se o arquivo listar.js já foi atualizado.</p>';
-  }
+  } catch(e) { document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar.</p>'; }
 }
 
-// FORÇA PEDIR SENHA SEMPRE AO ABRIR
+function baixarExcel(){
+  if(dadosAtuais.length===0){ alert('Nenhum dado para exportar'); return; }
+  let csv = "Data;Nome;Tipo;Valor;Pagamento;Culto;Observacao\n";
+  dadosAtuais.forEach(d=>{
+    csv += `${d.data||''};${d.nome||''};${d.tipo||''};${d.valorFormatado||d.valor||''};${d.pagamento||''};${d.culto||''};${(d.observacao||'').replace(/;/g,',')}\n`;
+  });
+  let blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `IBJI-${mesAtualGlobal}.csv`;
+  a.click();
+}
+
 sessionStorage.clear();
 document.getElementById('conteudoRelatorio').style.display='none';
 document.getElementById('telaBloqueio').style.display='flex';
