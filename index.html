@@ -1,176 +1,155 @@
-<!DOCTYPE html> <!-- Define o documento como HTML5 -->
-<html lang="pt-br"> <!-- Início do HTML, idioma português do Brasil -->
-
-<head> <!-- Início do cabeçalho, configurações da página -->
-    <meta charset="UTF-8"> <!-- Permite usar acentos e ç -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Deixa responsivo no celular -->
-    <title>Dízimos e Ofertas</title> <!-- Título da aba do navegador -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> <!-- Importa o CSS do Bootstrap 5.3 -->
-    <style> /* Início do seu CSS personalizado */
-        .logo{ /* Classe da logo */
-            width:90px; /* Largura da logo 90px */
-            display:block; /* Vira bloco para centralizar */
-            margin:0 auto 8px /* Centraliza e dá 8px embaixo */
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dízimos e Ofertas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .logo{ /* Logo redondo com acabamento */
+            width:100px; /* Largura */
+            height:100px; /* Altura igual pra ficar redondo */
+            border-radius:50%; /* Deixa redondo */
+            object-fit:cover; /* Preenche o círculo sem esticar */
+            display:block;
+            margin:0 auto 10px;
+            border:3px solid #1a4d3a; /* Borda verde escuro */
+            box-shadow:0 3px 10px rgba(0,0,0,0.25); /* Sombra */
+            background:#fff;
+            padding:3px;
         }
-    </style> <!-- Fim do CSS -->
-</head> <!-- Fim do cabeçalho -->
-
-<body style="background:#f1f5f9"> <!-- Corpo da página, com fundo cinza claro -->
-
-    <div class="container mt-4" style="max-width:520px"> <!-- Container centralizado do Bootstrap com max 520px -->
-        <div class="card shadow p-4"> <!-- Cartão branco com sombra e espaçamento interno -->
-
-            <img src="logo.png" class="logo" alt="" onerror="this.style.display='none'"> <!-- Logo da igreja, se não achar esconde -->
-            <h3 class="text-center">Igreja Batista no<br>Jardim dos Ipes</h3> <!-- Nome da igreja centralizado com quebra de linha -->
-            <h4 class="text-center mt-3">🙏 Dízimos e Ofertas</h4> <!-- Subtítulo da página -->
-
-            <label>Data</label> <!-- Rótulo do campo Data -->
-            <input type="date" id="data" class="form-control mb-2"> <!-- Campo de data -->
-
-            <label>Nome (max 20 letras)</label> <!-- Rótulo do campo Nome -->
-            <input type="text" id="nome" maxlength="20" class="form-control mb-2" placeholder="EX: JOAO SILVA"> <!-- Campo de nome, limite 20 caracteres -->
-
-            <div class="row"> <!-- Linha com 2 colunas: Tipo e Valor -->
-                <div class="col-6"> <!-- Coluna 50% para Tipo -->
-                    <label>Tipo</label> <!-- Rótulo Tipo -->
-                    <select id="tipo" class="form-select mb-2"> <!-- Caixa de seleção do tipo -->
-                        <option>Dízimo</option> <!-- Opção Dízimo -->
-                        <option>Oferta</option> <!-- Opção Oferta -->
-                        <option>Missões</option> <!-- Opção Missões -->
-                    </select> <!-- Fim do select Tipo -->
-                </div> <!-- Fim coluna Tipo -->
-
-                <div class="col-6"> <!-- Coluna 50% para Valor -->
-                    <label>Valor R$</label> <!-- Rótulo Valor -->
-                    <input type="text" inputmode="numeric" id="valor" class="form-control mb-2" placeholder="0,00" oninput="formataValor(this)"> <!-- Campo valor com teclado numérico e máscara -->
-                </div> <!-- Fim coluna Valor -->
-            </div> <!-- Fim linha Tipo/Valor -->
-
-            <div class="row"> <!-- Linha com 2 colunas: Pagamento e Culto -->
-                <div class="col-6"> <!-- Coluna 50% para Pagamento -->
-                    <label>Pagamento</label> <!-- Rótulo Pagamento -->
-                    <select id="pagamento" class="form-select mb-2"> <!-- Caixa de seleção pagamento -->
-                        <option>Pix</option> <!-- Opção Pix -->
-                        <option>Gazofilácio</option> <!-- Opção Gazofilácio -->
-                        <option>Transferência</option> <!-- Opção Transferência -->
-                    </select> <!-- Fim select pagamento -->
-                </div> <!-- Fim coluna pagamento -->
-
-                <div class="col-6"> <!-- Coluna 50% para Culto -->
-                    <label>Culto</label> <!-- Rótulo Culto -->
-                    <select id="culto" class="form-select mb-2"> <!-- Caixa de seleção culto -->
-                        <option>Domingo</option> <!-- Opção Domingo -->
-                        <option>Quinta</option> <!-- Opção Quinta -->
-                        <option>Remoto</option> <!-- Opção Remoto -->
-                    </select> <!-- Fim select culto -->
-                </div> <!-- Fim coluna culto -->
-            </div> <!-- Fim linha Pagamento/Culto -->
-
-            <label>Observação</label> <!-- Rótulo Observação -->
-            <textarea id="observacao" class="form-control mb-3" rows="2" placeholder="EXEMPLO"></textarea> <!-- Área de texto para observação -->
-
-            <button class="btn btn-primary w-100 btn-lg" id="btnSalvar" onclick="salvar()">Registrar Entrada</button> <!-- Botão azul grande para salvar -->
-            <p id="msg" class="text-center mt-2 fw-bold"></p> <!-- Parágrafo para mensagem de sucesso/erro -->
-            <a href="admin.html" class="btn btn-outline-secondary w-100 mt-2">Ver Relatório</a> <!-- Link botão para página de relatório -->
-
-        </div> <!-- Fim do card -->
-    </div> <!-- Fim do container -->
-
-<script> // Início do JavaScript
-
-// === FUNÇÃO PARA PEGAR DATA LOCAL CORRETA DO BRASIL (SEM BUG DE FUSO) ===
-function getHojeLocal(){ // Cria função que retorna data de hoje no padrão yyyy-mm-dd
-  let agora = new Date(); // Pega data e hora atual do sistema
-  let ano = agora.getFullYear(); // Pega o ano atual
-  let mes = String(agora.getMonth()+1).padStart(2,'0'); // Pega mês atual (+1) e coloca zero na frente se for 1 a 9
-  let dia = String(agora.getDate()).padStart(2,'0'); // Pega dia atual e coloca zero na frente
-  return `${ano}-${mes}-${dia}`; // Retorna no formato 2026-10-24
+    </style>
+</head>
+<body style="background:#f1f5f9">
+    <div class="container mt-4" style="max-width:520px">
+        <div class="card shadow p-4">
+            <img src="logo.png" class="logo" alt="" onerror="this.style.display='none'">
+            <h3 class="text-center">Igreja Batista no<br>Jardim dos Ipes</h3>
+            <h4 class="text-center mt-3">🙏 Dízimos e Ofertas</h4>
+            <label>Data</label>
+            <input type="date" id="data" class="form-control mb-2">
+            <label>Nome (max 20 letras)</label>
+            <input type="text" id="nome" maxlength="20" class="form-control mb-2" placeholder="EX: JOAO SILVA">
+            <div class="row">
+                <div class="col-6">
+                    <label>Tipo</label>
+                    <select id="tipo" class="form-select mb-2">
+                        <option>Dízimo</option>
+                        <option>Oferta</option>
+                        <option>Missões</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label>Valor R$</label>
+                    <input type="text" inputmode="numeric" id="valor" class="form-control mb-2" placeholder="0,00" oninput="formataValor(this)">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <label>Pagamento</label>
+                    <select id="pagamento" class="form-select mb-2">
+                        <option>Pix</option>
+                        <option>Gazofilácio</option>
+                        <option>Transferência</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label>Culto</label>
+                    <select id="culto" class="form-select mb-2">
+                        <option>Domingo</option>
+                        <option>Quinta</option>
+                        <option>Remoto</option>
+                    </select>
+                </div>
+            </div>
+            <label>Observação</label>
+            <textarea id="observacao" class="form-control mb-3" rows="2" placeholder="EXEMPLO"></textarea>
+            <button class="btn btn-primary w-100 btn-lg" id="btnSalvar" onclick="salvar()">Registrar Entrada</button>
+            <p id="msg" class="text-center mt-2 fw-bold"></p>
+            <a href="admin.html" class="btn btn-outline-secondary w-100 mt-2">Ver Relatório</a>
+        </div>
+    </div>
+<script>
+function getHojeLocal(){
+  let agora = new Date();
+  let ano = agora.getFullYear();
+  let mes = String(agora.getMonth()+1).padStart(2,'0');
+  let dia = String(agora.getDate()).padStart(2,'0');
+  return `${ano}-${mes}-${dia}`;
 }
-const hojeISO = getHojeLocal(); // Guarda a data de hoje em uma constante
-const inputData = document.getElementById('data'); // Pega o campo de input de data do HTML
-inputData.max = hojeISO; // Define data máxima permitida como hoje (trava no calendário)
-inputData.value = hojeISO; // Já preenche o campo com a data de hoje
-
-inputData.addEventListener('change', function(){ // Quando o usuário mudar a data
-  if(this.value > hojeISO){ // Se a data escolhida for maior que hoje (futuro)
-    alert('Proibido lançar datas futuras!⚠️'); // Mostra alerta
-    this.value = hojeISO; // Volta a data para hoje
+const hojeISO = getHojeLocal();
+const inputData = document.getElementById('data');
+inputData.max = hojeISO;
+inputData.value = hojeISO;
+inputData.addEventListener('change', function(){
+  if(this.value > hojeISO){
+    alert('Proibido lançar datas futuras!⚠️');
+    this.value = hojeISO;
   }
 });
-
-// FILTRO DO CAMPO NOME: SÓ LETRAS, MAIÚSCULO E MAX 20
-document.getElementById('nome').addEventListener('input',function(){ // Ao digitar no campo nome
-    this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase().slice(0,20) // Remove números e símbolos, deixa maiúsculo e corta em 20 letras
+document.getElementById('nome').addEventListener('input',function(){
+    this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase().slice(0,20)
 });
-
-// FILTRO DO CAMPO OBSERVAÇÃO: SÓ LETRAS E MAIÚSCULO
-document.getElementById('observacao').addEventListener('input',function(){ // Ao digitar na observação
-    this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase() // Remove números e deixa maiúsculo
+document.getElementById('observacao').addEventListener('input',function(){
+    this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase()
 });
-
-// FUNÇÃO QUE FORMATA O VALOR ENQUANTO DIGITA (EX: 1000 vira 10,00)
-function formataValor(input) { // Recebe o campo de input
-  let v = input.value.replace(/\D/g, ''); // Remove tudo que não é número
-  if (v === '') { input.value = ''; return; } // Se estiver vazio, deixa vazio e para
-  if (v.length > 12) v = v.slice(0, 12); // Limita a 12 dígitos para não quebrar
-  let num = (parseInt(v) / 100).toFixed(2).split('.'); // Divide por 100 para criar centavos e separa inteiro e decimal
-  let inteiro = num[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Coloca ponto de milhar (ex: 1.000)
-  input.value = inteiro + ',' + num[1]; // Junta inteiro + vírgula + centavos (ex: 1.000,00)
+function formataValor(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (v === '') { input.value = ''; return; }
+  if (v.length > 12) v = v.slice(0, 12);
+  let num = (parseInt(v) / 100).toFixed(2).split('.');
+  let inteiro = num[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  input.value = inteiro + ',' + num[1];
 }
-
-// FUNÇÃO QUE TRANSFORMA R$ 1.000,00 EM NÚMERO 1000.00 PARA SALVAR NO BANCO
-function pegaValorNumerico() { // Função sem parâmetro, lê direto do campo valor
-  let v = document.getElementById('valor').value; // Pega texto do campo valor
-  if (!v) return 0; // Se vazio retorna 0
-  return parseFloat(v.replace(/\./g, '').replace(',', '.')); // Remove pontos de milhar e troca vírgula por ponto, vira número
+function pegaValorNumerico() {
+  let v = document.getElementById('valor').value;
+  if (!v) return 0;
+  return parseFloat(v.replace(/\./g, '').replace(',', '.'));
 }
-
-// FUNÇÃO PRINCIPAL QUE SALVA NA NUVEM (NETLIFY FUNCTION)
-async function salvar(){ // Função assíncrona chamada no clique do botão
- let dataVal = document.getElementById('data').value; // Pega valor da data
- if(dataVal > hojeISO){ // Validação final de data futura
-   alert('Proibido lançar datas futuras!⚠️'); // Alerta
-   document.getElementById('data').value = hojeISO; // Corrige para hoje
-   return; // Para tudo
+async function salvar(){
+ let dataVal = document.getElementById('data').value;
+ if(dataVal > hojeISO){
+   alert('Proibido lançar datas futuras!⚠️');
+   document.getElementById('data').value = hojeISO;
+   return;
  }
- let b=document.getElementById('btnSalvar'); // Pega o botão salvar
- b.disabled=true; // Desativa botão para evitar duplo clique
- b.textContent='Salvando...'; // Muda texto para feedback
- let valorNum = pegaValorNumerico(); // Converte valor para número
- let valorFormat = document.getElementById('valor').value; // Pega valor formatado para exibir
- let d={ // Cria objeto com todos os dados para enviar
-   data:dataVal, // Data
-   nome:document.getElementById('nome').value.trim(), // Nome sem espaços extras
-   tipo:document.getElementById('tipo').value, // Tipo
-   valor:valorNum, // Valor numérico para cálculos
-   valorFormatado:valorFormat, // Valor formatado para exibir
-   pagamento:document.getElementById('pagamento').value, // Pagamento
-   culto:document.getElementById('culto').value, // Culto
-   observacao:document.getElementById('observacao').value // Observação
+ let b=document.getElementById('btnSalvar');
+ b.disabled=true;
+ b.textContent='Salvando...';
+ let valorNum = pegaValorNumerico();
+ let valorFormat = document.getElementById('valor').value;
+ let d={
+   data:dataVal,
+   nome:document.getElementById('nome').value.trim(),
+   tipo:document.getElementById('tipo').value,
+   valor:valorNum,
+   valorFormatado:valorFormat,
+   pagamento:document.getElementById('pagamento').value,
+   culto:document.getElementById('culto').value,
+   observacao:document.getElementById('observacao').value
  };
- if(!d.nome||!d.valor){ // Valida se nome e valor foram preenchidos
-    alert('Preencha nome e valor'); // Alerta
-    b.disabled=false; // Reativa botão
-    b.textContent='Registrar Entrada'; // Volta texto do botão
-    return; // Para
+ if(!d.nome||!d.valor){
+    alert('Preencha nome e valor');
+    b.disabled=false;
+    b.textContent='Registrar Entrada';
+    return;
  }
- try{ // Tenta salvar na nuvem
-   let r=await fetch('/.netlify/functions/salvar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}); // Envia para sua function do Netlify
-   if(!r.ok) throw Error(); // Se resposta não for OK, joga para o catch
-   document.getElementById('msg').className='text-center mt-2 fw-bold text-success'; // Classe verde para sucesso
-   document.getElementById('msg').textContent='✅ Salvo na nuvem! R$ ' + valorFormat; // Mensagem de sucesso com valor
-   document.getElementById('nome').value=''; // Limpa campo nome
-   document.getElementById('valor').value=''; // Limpa campo valor
-   document.getElementById('observacao').value=''; // Limpa observação
-   setTimeout(()=>{document.getElementById('msg').textContent=''},3000); // Apaga mensagem após 3 segundos
- }catch(e){ // Se deu erro ao salvar
-   document.getElementById('msg').className='text-center mt-2 fw-bold text-danger'; // Classe vermelha para erro
-   document.getElementById('msg').textContent='❌ Erro ao salvar na nuvem'; // Mensagem de erro
+ try{
+   let r=await fetch('/.netlify/functions/salvar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+   if(!r.ok) throw Error();
+   document.getElementById('msg').className='text-center mt-2 fw-bold text-success';
+   document.getElementById('msg').textContent='✅ Salvo na nuvem! R$ ' + valorFormat;
+   document.getElementById('nome').value='';
+   document.getElementById('valor').value='';
+   document.getElementById('observacao').value='';
+   setTimeout(()=>{document.getElementById('msg').textContent=''},3000);
+ }catch(e){
+   document.getElementById('msg').className='text-center mt-2 fw-bold text-danger';
+   document.getElementById('msg').textContent='❌ Erro ao salvar na nuvem';
  }
- b.disabled=false; // Reativa botão
- b.textContent='Registrar Entrada'; // Volta texto original do botão
+ b.disabled=false;
+ b.textContent='Registrar Entrada';
 }
-</script> <!-- Fim do JavaScript -->
-
-</body> <!-- Fim do corpo da página -->
-</html> <!-- Fim do documento HTML -->
+</script>
+</body>
+</html>
