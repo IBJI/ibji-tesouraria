@@ -38,102 +38,111 @@
 </div> <!-- Fim da tela bloqueio -->
 
 <!-- CONTEÚDO DO RELATÓRIO -->
-<div class="container mt-3" id="conteudoRelatorio" style="display:none; max-width:700px"> <!-- Container do relatório, começa escondido -->
+<div class="container mt-3" id="conteudoRelatorio" style="display:none; max-width:900px"> <!-- AUMENTEI PARA 900px PARA CABER CULTO -->
 <div class="card shadow p-3"> <!-- Cartão do relatório -->
 <h4 class="text-center">Relatório Financeiro</h4> <!-- Título do relatório -->
 
-<div class="d-flex gap-2 mt-3 mb-3"> <!-- Linha de controles com espaço entre eles -->
-  <select id="mesSelect" class="form-select" style="max-width:180px" onchange="carregar(this.value)"></select> <!-- Select de mês, ao mudar chama carregar -->
-  <button class="btn btn-outline-primary" onclick="carregar()">🔄</button> <!-- Botão recarregar -->
-  <button class="btn btn-success" onclick="baixarExcel()">📥 Excel</button> <!-- Botão baixar Excel -->
-  <button class="btn btn-warning" onclick="sair()">Sair</button> <!-- Botão sair/bloquear -->
-  <a href="../index.html" class="btn btn-secondary ms-auto" onclick="sessionStorage.clear()">Voltar</a> <!-- Link voltar para index -->
-</div> <!-- Fim linha de controles -->
+<div class="d-flex gap-2 mt-3 mb-3 flex-wrap"> <!-- Linha de controles -->
+  <select id="mesSelect" class="form-select" style="max-width:180px" onchange="carregar(this.value)"></select>
+  <button class="btn btn-outline-primary" onclick="carregar()">🔄</button>
+  <button class="btn btn-success" onclick="baixarExcel()">📥 Excel</button>
+  <button class="btn btn-warning" onclick="sair()">Sair</button>
+  <a href="index.html" class="btn btn-secondary ms-auto" onclick="sessionStorage.clear()">Voltar</a> <!-- CORRIGI CAMINHO PARA index.html -->
+</div>
 
-<div id="resumo" class="alert alert-info"></div> <!-- Div do resumo total/dízimos/ofertas -->
-<div id="lista"></div> <!-- Div onde entra a tabela -->
+<div id="resumo" class="alert alert-info"></div>
+<div id="lista" class="table-responsive"></div> <!-- ADICIONEI table-responsive PARA NÃO QUEBRAR NO CELULAR -->
 
-</div> <!-- Fim cartão relatório -->
-</div> <!-- Fim container relatório -->
+</div>
+</div>
 
-<script> // Início do JavaScript
-const SENHA_CORRETA = "24M@ri28Juli"; // Senha fixa de acesso
-let dadosAtuais = []; // Guarda os dados do mês carregado
-let mesAtualGlobal = ""; // Guarda o mês atual global
+<script>
+const SENHA_CORRETA = "24M@ri28Juli";
+let dadosAtuais = [];
+let mesAtualGlobal = "";
 
-function checarSenha(){ // Função para checar senha
-  if(document.getElementById('inputSenha').value === SENHA_CORRETA){ // Se senha digitada igual a correta
-    sessionStorage.setItem('logado','true'); // Marca como logado na sessão
-    document.getElementById('telaBloqueio').style.display='none'; // Esconde tela de bloqueio
-    document.getElementById('conteudoRelatorio').style.display='block'; // Mostra relatório
-    carregar(); // Carrega dados
-  } else { // Se senha errada
-    document.getElementById('erroSenha').textContent='❌ Senha incorreta!'; // Mostra erro
+function checarSenha(){
+  if(document.getElementById('inputSenha').value === SENHA_CORRETA){
+    sessionStorage.setItem('logado','true');
+    document.getElementById('telaBloqueio').style.display='none';
+    document.getElementById('conteudoRelatorio').style.display='block';
+    carregar();
+  } else {
+    document.getElementById('erroSenha').textContent='❌ Senha incorreta!';
   }
 }
-function voltar(){ sessionStorage.clear(); window.location.href='../index.html'; } // Limpa sessão e volta para index
-function sair(){ sessionStorage.clear(); document.getElementById('inputSenha').value=''; document.getElementById('conteudoRelatorio').style.display='none'; document.getElementById('telaBloqueio').style.display='flex'; document.getElementById('erroSenha').textContent=''; } // Limpa, esconde relatório e mostra bloqueio de novo
+function voltar(){ sessionStorage.clear(); window.location.href='index.html'; }
+function sair(){ sessionStorage.clear(); document.getElementById('inputSenha').value=''; document.getElementById('conteudoRelatorio').style.display='none'; document.getElementById('telaBloqueio').style.display='flex'; document.getElementById('erroSenha').textContent=''; }
 
-async function carregar(mesForcado) { // Função assíncrona para carregar dados da nuvem
-  let select = document.getElementById('mesSelect'); // Pega select de mês
-  let mes = mesForcado || select.value; // Define mês a carregar
-  let url = mes ? `/.netlify/functions/listar?mes=${mes}` : `/.netlify/functions/listar`; // Monta URL da API
-  document.getElementById('lista').innerHTML = '<p class="text-center">Carregando...</p>'; // Mostra carregando
-  try { // Tenta buscar
-    let r = await fetch(url); // Busca na function listar
-    let { dados, meses, mesAtual } = await r.json(); // Pega dados, meses e mesAtual do JSON
-    dadosAtuais = dados; // Guarda dados na global
-    mesAtualGlobal = mes || mesAtual; // Guarda mês atual
+async function carregar(mesForcado) {
+  let select = document.getElementById('mesSelect');
+  let mes = mesForcado || select.value;
+  let url = mes ? `/.netlify/functions/listar?mes=${mes}` : `/.netlify/functions/listar`;
+  document.getElementById('lista').innerHTML = '<p class="text-center">Carregando...</p>';
+  try {
+    let r = await fetch(url);
+    let { dados, meses, mesAtual } = await r.json();
+    dadosAtuais = dados;
+    mesAtualGlobal = mes || mesAtual;
 
-    if (select.options.length === 0 || meses.length !== select.options.length) { // Se select vazio ou lista mudou
-        select.innerHTML = ''; // Limpa select
-        if (meses.length === 0) meses = [mesAtual]; // Se não veio mês, usa mesAtual
-        meses.sort().reverse().forEach(m => { // Ordena meses decrescente
-            let opt = document.createElement('option'); // Cria option
-            opt.value = m; // Valor yyyy-mm
-            let [a, me] = m.split('-'); // Separa ano e mês
-            opt.textContent = me + '/' + a; // Mostra mm/yyyy
-            if (m === (mes || mesAtual)) opt.selected = true; // Seleciona se for o mês atual
-            select.appendChild(opt); // Adiciona no select
+    if (select.options.length === 0 || meses.length !== select.options.length) {
+        select.innerHTML = '';
+        if (meses.length === 0) meses = [mesAtual];
+        meses.sort().reverse().forEach(m => {
+            let opt = document.createElement('option');
+            opt.value = m;
+            let [a, me] = m.split('-');
+            opt.textContent = me + '/' + a;
+            if (m === (mes || mesAtual)) opt.selected = true;
+            select.appendChild(opt);
         });
-        if (!mes) mes = mesAtual; // Define mês se estava vazio
-        mesAtualGlobal = mes; // Atualiza global
+        if (!mes) mes = mesAtual;
+        mesAtualGlobal = mes;
     }
 
-    let total = dados.reduce((s, x) => s + (Number(x.valor)||0), 0); // Soma total geral
-    let dizimo = dados.filter(x=>x.tipo==='Dízimo').reduce((s,x)=>s+Number(x.valor),0); // Soma só dízimos
-    let oferta = dados.filter(x=>x.tipo==='Oferta').reduce((s,x)=>s+Number(x.valor),0); // Soma só ofertas
+    let total = dados.reduce((s, x) => s + (Number(x.valor)||0), 0);
+    let dizimo = dados.filter(x=>x.tipo==='Dízimo').reduce((s,x)=>s+Number(x.valor),0);
+    let oferta = dados.filter(x=>x.tipo==='Oferta').reduce((s,x)=>s+Number(x.valor),0);
+    let missoes = dados.filter(x=>x.tipo==='Missões').reduce((s,x)=>s+Number(x.valor),0);
 
-    document.getElementById('resumo').innerHTML = `<b>Mês: ${mes}</b> | Lançamentos: ${dados.length}<br><b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b> | Dízimos: R$ ${dizimo.toLocaleString('pt-BR')} | Ofertas: R$ ${oferta.toLocaleString('pt-BR')}`; // Exibe resumo
+    document.getElementById('resumo').innerHTML = `<b>Mês: ${mes}</b> | Lançamentos: ${dados.length}<br><b>Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b> | Dízimos: R$ ${dizimo.toLocaleString('pt-BR')} | Ofertas: R$ ${oferta.toLocaleString('pt-BR')} | Missões: R$ ${missoes.toLocaleString('pt-BR')}`;
 
-    if (dados.length === 0) { document.getElementById('lista').innerHTML = '<p class="text-center text-muted mt-3">Nenhum lançamento neste mês</p>'; return; } // Se vazio, mostra mensagem e para
+    if (dados.length === 0) { document.getElementById('lista').innerHTML = '<p class="text-center text-muted mt-3">Nenhum lançamento neste mês</p>'; return; }
 
-    let html = '<table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th></tr>'; // Início da tabela
-    dados.forEach(d => { // Para cada registro
-        html += `<tr><td>${(d.data||'').split('-').reverse().join('/')}</td><td>${d.nome||''}</td><td>${d.tipo||''}</td><td>R$ ${d.valorFormatado || Number(d.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; // Cria linha com data dd/mm/yyyy
+    // CORREÇÃO: ADICIONEI CULTO E PAGAMENTO NA TABELA
+    let html = '<table class="table table-sm table-striped"><tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Valor</th><th>Pagamento</th><th>Culto</th></tr>';
+    dados.forEach(d => {
+        html += `<tr>
+          <td>${(d.data||'').split('-').reverse().join('/')}</td>
+          <td>${d.nome||''}</td>
+          <td>${d.tipo||''}</td>
+          <td>R$ ${d.valorFormatado || Number(d.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+          <td>${d.pagamento||''}</td>
+          <td><span class="badge bg-primary">${d.culto||''}</span></td>
+        </tr>`;
     });
-    html += '</table>'; // Fecha tabela
-    document.getElementById('lista').innerHTML = html; // Joga tabela na página
+    html += '</table>';
+    document.getElementById('lista').innerHTML = html;
 
-  } catch(e) { document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar.</p>'; } // Se deu erro, mostra erro
+  } catch(e) { document.getElementById('lista').innerHTML = '<p class="text-danger text-center">Erro ao carregar.</p>'; }
 }
 
-function baixarExcel(){ // Função para baixar CSV
-  if(dadosAtuais.length===0){ alert('Nenhum dado para exportar'); return; } // Se não tem dado, alerta
-  let csv = "Data;Nome;Tipo;Valor;Pagamento;Culto;Observacao\n"; // Cabeçalho CSV
-  dadosAtuais.forEach(d=>{ // Para cada dado
-    csv += `${d.data||''};${d.nome||''};${d.tipo||''};${d.valorFormatado||d.valor||''};${d.pagamento||''};${d.culto||''};${(d.observacao||'').replace(/;/g,',')}\n`; // Linha do CSV trocando ; por ,
+function baixarExcel(){
+  if(dadosAtuais.length===0){ alert('Nenhum dado para exportar'); return; }
+  let csv = "Data;Nome;Tipo;Valor;Pagamento;Culto;Observacao\n";
+  dadosAtuais.forEach(d=>{
+    csv += `${d.data||''};${d.nome||''};${d.tipo||''};${d.valorFormatado||d.valor||''};${d.pagamento||''};${d.culto||''};${(d.observacao||'').replace(/;/g,',')}\n`;
   });
-  let blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); // Cria arquivo blob
-  let a = document.createElement('a'); // Cria link
-  a.href = URL.createObjectURL(blob); // Cria URL do blob
-  a.download = `IBJI-${mesAtualGlobal}.csv`; // Nome do arquivo
-  a.click(); // Baixa
+  let blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `IBJI-${mesAtualGlobal}.csv`;
+  a.click();
 }
 
-sessionStorage.clear(); // Limpa sessão ao abrir página
-document.getElementById('conteudoRelatorio').style.display='none'; // Garante que relatório começa escondido
-document.getElementById('telaBloqueio').style.display='flex'; // Garante que bloqueio começa visível
-</script> <!-- Fim do JavaScript -->
-</body> <!-- Fim do corpo -->
-</html> <!-- Fim do HTML -->
+sessionStorage.clear();
+document.getElementById('conteudoRelatorio').style.display='none';
+document.getElementById('telaBloqueio').style.display='flex';
+</script>
+</body>
+</html>
