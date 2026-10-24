@@ -1,6 +1,6 @@
-[build]
-  publish = "."
-  functions = "netlify/functions"
+[build] # Configuração de build do Netlify
+  publish = "." # Diz que o site (index.html e admin.html) está na raiz
+  functions = "netlify/functions" # Diz que as functions salvar.js e listar.js estão nessa pasta
 
-[functions]
-  node_bundler = "esbuild"
+[functions] # Configuração das functions
+  node_bundler = "esbuild" # Usa esbuild para empacotar as functions mais rápido
