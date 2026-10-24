@@ -1,167 +1,173 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dízimos e Ofertas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body{
-            background:#fdf3c8 !important; /* AMARELO QUEIMADO BEM LEVE */
+<!DOCTYPE html> <!-- Diz ao navegador que é HTML5 -->
+<html lang="pt-br"> <!-- Começa HTML, idioma português Brasil -->
+<head> <!-- Cabeçalho, configs que não aparecem na tela -->
+    <meta charset="UTF-8"> <!-- Libera acentos, ç, ã, etc -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Deixa responsivo no celular -->
+    <title>Dízimos e Ofertas</title> <!-- Nome que aparece na aba do navegador -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> <!-- Puxa o CSS do Bootstrap 5.3 da internet -->
+    <style> /* Abre seu CSS personalizado */
+        body{ /* Estilo do corpo todo da página */
+            background:#fdf3c8 !important; /* Fundo AMARELO QUEIMADO bem leve, !important força aplicar */
         }
-        .logo{
-            width:100px;
-            height:100px;
-            border-radius:50%;
-            object-fit:cover;
-            display:block;
-            margin:0 auto 10px;
-            border:3px solid #1a4d3a;
-            box-shadow:0 3px 10px rgba(0,0,0,0.25);
-            background:#fff;
-            padding:3px;
+        .logo{ /* Classe da logo */
+            width:100px; /* Largura 100px */
+            height:100px; /* Altura 100px igual pra ficar quadrada e virar círculo */
+            border-radius:50%; /* Deixa 100% redonda */
+            object-fit:cover; /* Corta imagem pra preencher círculo sem esticar */
+            display:block; /* Transforma em bloco pra poder centralizar */
+            margin:0 auto 10px; /* 0 em cima, auto nas laterais = centraliza, 10px embaixo */
+            border:3px solid #1a4d3a; /* Borda 3px verde escuro acabamento */
+            box-shadow:0 3px 10px rgba(0,0,0,0.25); /* Sombra suave pra destacar */
+            background:#fff; /* Fundo branco dentro da logo */
+            padding:3px; /* Espaço de 3px entre foto e borda */
         }
-        .btn-pasta{ /* BOTÃO VERDE PASTA RELATÓRIO */
-            background:#1a4d3a;
-            color:#fff;
-            border:none;
+        .btn-pasta{ /* Classe do botão verde Pasta Relatório */
+            background:#1a4d3a; /* Fundo verde escuro igual borda da logo */
+            color:#fff; /* Texto branco */
+            border:none; /* Tira borda padrão */
         }
-        .btn-pasta:hover{
-            background:#143a2c;
-            color:#fff;
+        .btn-pasta:hover{ /* Quando passa mouse em cima do botão verde */
+            background:#143a2c; /* Fica verde mais escuro ainda */
+            color:#fff; /* Continua texto branco */
         }
-    </style>
-</head>
-<body>
-    <div class="container mt-4" style="max-width:520px">
-        <div class="card shadow p-4" style="background:#fffef5">
-            <img src="logo.png" class="logo" alt="" onerror="this.style.display='none'">
-            <h3 class="text-center">Igreja Batista no<br>Jardim dos Ipes</h3>
-            <h4 class="text-center mt-3">🙏 Dízimos e Ofertas</h4>
-            <label>Data</label>
-            <input type="date" id="data" class="form-control mb-2">
-            <label>Nome (max 20 letras)</label>
-            <input type="text" id="nome" maxlength="20" class="form-control mb-2" placeholder="EX: JOAO SILVA">
-            <div class="row">
-                <div class="col-6">
-                    <label>Tipo</label>
-                    <select id="tipo" class="form-select mb-2">
-                        <option>Dízimo</option>
-                        <option>Oferta</option>
-                        <option>Missões</option>
-                    </select>
-                </div>
-                <div class="col-6">
-                    <label>Valor R$</label>
-                    <input type="text" inputmode="numeric" id="valor" class="form-control mb-2" placeholder="0,00" oninput="formataValor(this)">
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6">
-                    <label>Pagamento</label>
-                    <select id="pagamento" class="form-select mb-2">
-                        <option>Pix</option>
-                        <option>Gazofilácio</option>
-                        <option>Transferência</option>
-                    </select>
-                </div>
-                <div class="col-6">
-                    <label>Culto</label>
-                    <select id="culto" class="form-select mb-2">
-                        <option>Domingo</option>
-                        <option>Quinta</option>
-                        <option>Remoto</option>
-                    </select>
-                </div>
-            </div>
-            <label>Observação</label>
-            <textarea id="observacao" class="form-control mb-3" rows="2" placeholder="EXEMPLO"></textarea>
-            <button class="btn btn-primary w-100 btn-lg" id="btnSalvar" onclick="salvar()">Registrar Entrada</button>
-            <p id="msg" class="text-center mt-2 fw-bold"></p>
-            <a href="admin.html" class="btn btn-pasta w-100 mt-2">📁 Pasta Relatório</a>
-        </div>
-    </div>
-<script>
-function getHojeLocal(){
-  let agora = new Date();
-  let ano = agora.getFullYear();
-  let mes = String(agora.getMonth()+1).padStart(2,'0');
-  let dia = String(agora.getDate()).padStart(2,'0');
-  return `${ano}-${mes}-${dia}`;
+    </style> <!-- Fecha seu CSS -->
+</head> <!-- Fecha cabeçalho -->
+<body> <!-- Começa corpo visível da página -->
+    <div class="container mt-4" style="max-width:520px"> <!-- Container do Bootstrap, mt-4 = margem topo, max 520px largura -->
+        <div class="card shadow p-4" style="background:#fffef5"> <!-- Cartão branco com sombra, p-4 = espaçamento interno, fundo quase branco amareladinho -->
+            <img src="logo.png" class="logo" alt="" onerror="this.style.display='none'"> <!-- Mostra logo.png com classe logo, se não achar arquivo esconde -->
+            <h3 class="text-center">Igreja Batista no<br>Jardim dos Ipes</h3> <!-- Título h3 centralizado, <br> quebra linha -->
+            <h4 class="text-center mt-3">🙏 Dízimos e Ofertas</h4> <!-- Subtítulo h4 centralizado, mt-3 = margem topo -->
+
+            <label>Data</label> <!-- Texto rótulo Data -->
+            <input type="date" id="data" class="form-control mb-2"> <!-- Campo calendário, id data, estilo Bootstrap, mb-2 margem embaixo -->
+
+            <label>Nome (max 20 letras)</label> <!-- Texto rótulo Nome -->
+            <input type="text" id="nome" maxlength="20" class="form-control mb-2" placeholder="EX: JOAO SILVA"> <!-- Campo texto nome, limite 20, placeholder exemplo -->
+
+            <div class="row"> <!-- Linha Bootstrap pra dividir em 2 colunas -->
+                <div class="col-6"> <!-- Coluna metade da largura (6 de 12) -->
+                    <label>Tipo</label> <!-- Rótulo Tipo -->
+                    <select id="tipo" class="form-select mb-2"> <!-- Caixa seleção Tipo -->
+                        <option>Dízimo</option> <!-- Opção Dízimo -->
+                        <option>Oferta</option> <!-- Opção Oferta -->
+                        <option>Missões</option> <!-- Opção Missões -->
+                    </select> <!-- Fecha select Tipo -->
+                </div> <!-- Fecha coluna Tipo -->
+                <div class="col-6"> <!-- Coluna metade Valor -->
+                    <label>Valor R$</label> <!-- Rótulo Valor -->
+                    <input type="text" inputmode="numeric" id="valor" class="form-control mb-2" placeholder="0,00" oninput="formataValor(this)"> <!-- Campo valor, teclado numérico no celular, chama formataValor ao digitar -->
+                </div> <!-- Fecha coluna Valor -->
+            </div> <!-- Fecha linha Tipo/Valor -->
+
+            <div class="row"> <!-- Linha Pagamento e Culto -->
+                <div class="col-6"> <!-- Coluna Pagamento -->
+                    <label>Pagamento</label> <!-- Rótulo Pagamento -->
+                    <select id="pagamento" class="form-select mb-2"> <!-- Select Pagamento -->
+                        <option>Pix</option> <!-- Opção Pix -->
+                        <option>Gazofilácio</option> <!-- Opção Gazofilácio -->
+                        <option>Transferência</option> <!-- Opção Transferência -->
+                    </select> <!-- Fecha select Pagamento -->
+                </div> <!-- Fecha coluna Pagamento -->
+                <div class="col-6"> <!-- Coluna Culto -->
+                    <label>Culto</label> <!-- Rótulo Culto -->
+                    <select id="culto" class="form-select mb-2"> <!-- Select Culto -->
+                        <option>Domingo</option> <!-- Opção Domingo -->
+                        <option>Quinta</option> <!-- Opção Quinta -->
+                        <option>Remoto</option> <!-- Opção Remoto -->
+                    </select> <!-- Fecha select Culto -->
+                </div> <!-- Fecha coluna Culto -->
+            </div> <!-- Fecha linha Pagamento/Culto -->
+
+            <label>Observação</label> <!-- Rótulo Observação -->
+            <textarea id="observacao" class="form-control mb-3" rows="2" placeholder="EXEMPLO"></textarea> <!-- Área texto observação, 2 linhas, margem mb-3 -->
+
+            <button class="btn btn-primary w-100 btn-lg" id="btnSalvar" onclick="salvar()">Registrar Entrada</button> <!-- Botão azul grande, w-100 largura total, chama função salvar() -->
+            <p id="msg" class="text-center mt-2 fw-bold"></p> <!-- Parágrafo vazio pra mensagem verde sucesso ou vermelha erro, centralizado negrito -->
+            <a href="admin.html" class="btn btn-pasta w-100 mt-2">📁 Pasta Relatório</a> <!-- Botão verde link pra admin.html, largura total, margem topo -->
+        </div> <!-- Fecha card -->
+    </div> <!-- Fecha container -->
+<script> // Abre JavaScript
+function getHojeLocal(){ // Função pra pegar data local do Brasil sem bug de fuso
+  let agora = new Date(); // Pega data e hora agora do computador
+  let ano = agora.getFullYear(); // Extrai ano atual
+  let mes = String(agora.getMonth()+1).padStart(2,'0'); // Pega mês 0-11 +1, transforma em texto e põe 0 na frente se <10
+  let dia = String(agora.getDate()).padStart(2,'0'); // Pega dia e põe 0 na frente se <10
+  return `${ano}-${mes}-${dia}`; // Monta texto 2026-10-24
 }
-const hojeISO = getHojeLocal();
-const inputData = document.getElementById('data');
-inputData.max = hojeISO;
-inputData.value = hojeISO;
-inputData.addEventListener('change', function(){
-  if(this.value > hojeISO){
-    alert('Proibido lançar datas futuras!⚠️');
-    this.value = hojeISO;
+const hojeISO = getHojeLocal(); // Chama função e guarda hoje numa constante
+const inputData = document.getElementById('data'); // Pega elemento input data do HTML
+inputData.max = hojeISO; // Define data máxima no calendário = hoje, trava futuro
+inputData.value = hojeISO; // Já preenche campo com hoje
+inputData.addEventListener('change', function(){ // Ouve quando usuário muda data
+  if(this.value > hojeISO){ // Se data escolhida maior que hoje
+    alert('Proibido lançar datas futuras!⚠️'); // Mostra alerta
+    this.value = hojeISO; // Volta pra hoje
   }
 });
-document.getElementById('nome').addEventListener('input',function(){
-    this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase().slice(0,20)
+document.getElementById('nome').addEventListener('input',function(){ // Ouve digitação no nome
+    this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase().slice(0,20) // Remove número/símbolo, maiúsculo, corta 20
 });
-document.getElementById('observacao').addEventListener('input',function(){
-    this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase()
+document.getElementById('observacao').addEventListener('input',function(){ // Ouve digitação observação
+    this.value=this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').toUpperCase() // Remove número, maiúsculo
 });
-function formataValor(input) {
-  let v = input.value.replace(/\D/g, '');
-  if (v === '') { input.value = ''; return; }
-  if (v.length > 12) v = v.slice(0, 12);
-  let num = (parseInt(v) / 100).toFixed(2).split('.');
-  let inteiro = num[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  input.value = inteiro + ',' + num[1];
+function formataValor(input) { // Formata valor enquanto digita
+  let v = input.value.replace(/\D/g, ''); // Tira tudo que não é dígito
+  if (v === '') { input.value = ''; return; } // Se vazio limpa e sai
+  if (v.length > 12) v = v.slice(0, 12); // Limita 12 dígitos pra não quebrar
+  let num = (parseInt(v) / 100).toFixed(2).split('.'); // Divide por 100 pra centavos, separa parte inteira e decimal
+  let inteiro = num[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Coloca ponto milhar 1.000
+  input.value = inteiro + ',' + num[1]; // Junta inteiro + vírgula + centavos
 }
-function pegaValorNumerico() {
-  let v = document.getElementById('valor').value;
-  if (!v) return 0;
-  return parseFloat(v.replace(/\./g, '').replace(',', '.'));
+function pegaValorNumerico() { // Converte texto 1.000,00 em número 1000.00 pro banco
+  let v = document.getElementById('valor').value; // Pega texto do campo valor
+  if (!v) return 0; // Se vazio retorna 0
+  return parseFloat(v.replace(/\./g, '').replace(',', '.')); // Tira pontos e troca vírgula por ponto
 }
-async function salvar(){
- let dataVal = document.getElementById('data').value;
- if(dataVal > hojeISO){
-   alert('Proibido lançar datas futuras!⚠️');
-   document.getElementById('data').value = hojeISO;
-   return;
+async function salvar(){ // Função principal assíncrona que salva
+ let dataVal = document.getElementById('data').value; // Pega data digitada
+ if(dataVal > hojeISO){ // Validação final futuro
+   alert('Proibido lançar datas futuras!⚠️'); // Alerta
+   document.getElementById('data').value = hojeISO; // Corrige
+   return; // Para função
  }
- let b=document.getElementById('btnSalvar');
- b.disabled=true;
- b.textContent='Salvando...';
- let valorNum = pegaValorNumerico();
- let valorFormat = document.getElementById('valor').value;
- let d={
-   data:dataVal,
-   nome:document.getElementById('nome').value.trim(),
-   tipo:document.getElementById('tipo').value,
-   valor:valorNum,
-   valorFormatado:valorFormat,
-   pagamento:document.getElementById('pagamento').value,
-   culto:document.getElementById('culto').value,
-   observacao:document.getElementById('observacao').value
+ let b=document.getElementById('btnSalvar'); // Pega botão salvar
+ b.disabled=true; // Desativa pra evitar 2 cliques
+ b.textContent='Salvando...'; // Muda texto feedback
+ let valorNum = pegaValorNumerico(); // Converte valor pra número
+ let valorFormat = document.getElementById('valor').value; // Pega valor bonito formatado
+ let d={ // Cria objeto com dados
+   data:dataVal, // Data
+   nome:document.getElementById('nome').value.trim(), // Nome sem espaço extra
+   tipo:document.getElementById('tipo').value, // Tipo
+   valor:valorNum, // Valor numérico
+   valorFormatado:valorFormat, // Valor formatado
+   pagamento:document.getElementById('pagamento').value, // Pagamento
+   culto:document.getElementById('culto').value, // Culto
+   observacao:document.getElementById('observacao').value // Observação
  };
- if(!d.nome||!d.valor){
-    alert('Preencha nome e valor');
-    b.disabled=false;
-    b.textContent='Registrar Entrada';
-    return;
+ if(!d.nome||!d.valor){ // Se falta nome ou valor
+    alert('Preencha nome e valor'); // Avisa
+    b.disabled=false; // Reativa botão
+    b.textContent='Registrar Entrada'; // Volta texto
+    return; // Para
  }
- try{
-   let r=await fetch('/.netlify/functions/salvar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-   if(!r.ok) throw Error();
-   document.getElementById('msg').className='text-center mt-2 fw-bold text-success';
-   document.getElementById('msg').textContent='✅ Salvo na nuvem! R$ ' + valorFormat;
-   document.getElementById('nome').value='';
-   document.getElementById('valor').value='';
-   document.getElementById('observacao').value='';
-   setTimeout(()=>{document.getElementById('msg').textContent=''},3000);
- }catch(e){
-   document.getElementById('msg').className='text-center mt-2 fw-bold text-danger';
-   document.getElementById('msg').textContent='❌ Erro ao salvar na nuvem';
+ try{ // Tenta salvar na nuvem
+   let r=await fetch('/.netlify/functions/salvar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}); // Envia JSON pra function Netlify
+   if(!r.ok) throw Error(); // Se resposta não ok joga pro catch
+   document.getElementById('msg').className='text-center mt-2 fw-bold text-success'; // Classe verde sucesso
+   document.getElementById('msg').textContent='✅ Salvo na nuvem! R$ ' + valorFormat; // Mensagem sucesso com valor
+   document.getElementById('nome').value=''; // Limpa nome
+   document.getElementById('valor').value=''; // Limpa valor
+   document.getElementById('observacao').value=''; // Limpa observação
+   setTimeout(()=>{document.getElementById('msg').textContent=''},3000); // Apaga mensagem depois 3s
+ }catch(e){ // Se deu erro
+   document.getElementById('msg').className='text-center mt-2 fw-bold text-danger'; // Classe vermelha erro
+   document.getElementById('msg').textContent='❌ Erro ao salvar na nuvem'; // Mensagem erro
  }
- b.disabled=false;
- b.textContent='Registrar Entrada';
+ b.disabled=false; // Reativa botão no final
+ b.textContent='Registrar Entrada'; // Volta texto original
 }
-</script>
-</body>
-</html>
+</script> <!-- Fecha JavaScript -->
+</body> <!-- Fecha corpo -->
+</html> <!-- Fecha documento HTML -->
